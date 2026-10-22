@@ -1,5 +1,5 @@
 /**
- * LegalConnect Frontend Build Script
+ * ReSecure Frontend Build Script
  * Handles both Vite bundle execution and standalone production distribution packaging.
  */
 
@@ -9,50 +9,38 @@ const { execSync } = require('child_process');
 
 const rootDir = path.resolve(__dirname, '..');
 const distDir = path.resolve(rootDir, 'dist');
-const assetsDir = path.resolve(distDir, 'assets');
 
-console.log('--- LegalConnect MVP Frontend Build Process ---');
+console.log('--- ReSecure Cybersecurity Frontend Build Process ---');
 console.log('Target Directory:', distDir);
 
-// 1. Ensure dist and assets directories exist
+// 1. Ensure dist directory exists
 if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir, { recursive: true });
-}
-if (!fs.existsSync(assetsDir)) {
-  fs.mkdirSync(assetsDir, { recursive: true });
 }
 
 // 2. Check if Vite and TypeScript are installed in node_modules
 const viteBin = path.resolve(rootDir, 'node_modules', '.bin', process.platform === 'win32' ? 'vite.cmd' : 'vite');
+const tscBin = path.resolve(rootDir, 'node_modules', '.bin', process.platform === 'win32' ? 'tsc.cmd' : 'tsc');
 
-let viteBuilt = false;
-if (fs.existsSync(viteBin)) {
+let built = false;
+if (fs.existsSync(tscBin) && fs.existsSync(viteBin)) {
   try {
-    console.log('Found local Vite binary. Executing vite build...');
+    console.log('Running TypeScript type checking (tsc --noEmit)...');
+    execSync(`"${tscBin}" --noEmit`, { cwd: rootDir, stdio: 'inherit' });
+    console.log('✓ TypeScript typecheck passed with 0 errors.');
+
+    console.log('Running Vite production build...');
     execSync(`"${viteBin}" build`, { cwd: rootDir, stdio: 'inherit' });
     console.log('✓ Vite build completed successfully.');
-    viteBuilt = true;
+    built = true;
   } catch (err) {
-    console.warn('Vite build encountered an error, falling back to standalone distribution builder:', err.message);
+    console.error('Build step encountered an error:', err.message);
+    process.exit(1);
   }
+} else {
+  console.error('Missing tsc or vite binaries in node_modules.');
+  process.exit(1);
 }
 
-// 3. If vite was not present or failed, create the standalone production distribution
-if (!viteBuilt) {
-  console.log('Packaging standalone production distribution bundle...');
-
-  // Copy and adapt index.html for distribution
-  const indexHtmlSource = fs.readFileSync(path.resolve(rootDir, 'index.html'), 'utf-8');
-  
-  // Create production index.html that loads our self-contained interactive app bundle
-  fs.writeFileSync(path.resolve(distDir, 'index.html'), indexHtmlSource, 'utf-8');
-
-  // Copy CSS
-  const cssSource = fs.readFileSync(path.resolve(rootDir, 'src', 'index.css'), 'utf-8');
-  fs.writeFileSync(path.resolve(assetsDir, 'index.css'), cssSource, 'utf-8');
-
-  console.log('✓ Standalone production distribution packaged into dist/');
-}
-
-console.log('Build verification completed successfully with 0 errors.');
+console.log('✓ Build verification completed successfully with 0 errors.');
 process.exit(0);
