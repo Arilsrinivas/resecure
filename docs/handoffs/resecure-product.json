@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "task_id": "TASK-RS-001",
+  "epic": "resecure",
+  "agent": "Product Agent",
+  "branch": "feature/resecure",
+  "status": "READY_FOR_REVIEW",
+  "timestamp": "2026-10-22T17:35:00Z",
+  "changes": {
+    "files_created": [
+      "docs/prd/resecure-mvp.prd.md",
+      "resecure/docs/prd/resecure-mvp.prd.md",
+      "docs/handoffs/resecure-product.json",
+      "docs/handoffs/resecure-product.md"
+    ],
+    "files_modified": [],
+    "files_deleted": []
+  },
+  "contracts_consumed": [],
+  "contracts_produced": [
+    "docs/prd/resecure-mvp.prd.md"
+  ],
+  "verification": {
+    "type_check_passed": true,
+    "linter_passed": true,
+    "unit_tests_run": 0,
+    "unit_tests_passed": 0,
+    "test_command": "none (specification artifact)",
+    "test_log_path": ""
+  },
+  "known_limitations": [
+    "MVP v1.0 scope is bounded to local-only file verification and recovery up to 2.0 GB per file; distributed parity clusters and live kernel filesystem drivers are deferred to post-MVP.",
+    "Heuristic structural repair is best-effort and cannot guarantee semantic completeness when Reed-Solomon parity capacity is exhausted."
+  ],
+  "downstream_actions": [
+    "Architect Agent to decompose PRD into System Architecture Specification (docs/architecture/resecure-architecture.md)",
+    "Architect Agent to produce formal CLI / API Contract specification (contracts/resecure-contract.yaml)",
+    "Architect Agent to author ADRs for Galois Field GF(2^8) Reed-Solomon matrix implementation, chunk streaming, and HMAC manifest authentication"
+  ]
+}
