@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "task_id": "TASK-RS-002",
+  "epic": "resecure",
+  "agent": "Architect Agent",
+  "branch": "feature/resecure",
+  "status": "READY_FOR_REVIEW",
+  "timestamp": "2026-10-22T17:45:00Z",
+  "changes": {
+    "files_created": [
+      "docs/architecture/resecure-architecture.md",
+      "resecure/docs/architecture/resecure-architecture.md",
+      "docs/adr/ADR-003-resecure-stack.md",
+      "resecure/docs/adr/ADR-003-resecure-stack.md",
+      "contracts/resecure/api.yaml",
+      "resecure/contracts/api.yaml",
+      "contracts/resecure/schema.sql",
+      "resecure/contracts/schema.sql",
+      "contracts/resecure/types.ts",
+      "resecure/contracts/types.ts",
+      "docs/handoffs/resecure-architect.json",
+      "docs/handoffs/resecure-architect.md"
+    ],
+    "files_modified": [],
+    "files_deleted": []
+  },
+  "contracts_consumed": [
+    "docs/prd/resecure-mvp.prd.md"
+  ],
+  "contracts_produced": [
+    "contracts/resecure/api.yaml",
+    "resecure/contracts/api.yaml",
+    "contracts/resecure/schema.sql",
+    "resecure/contracts/schema.sql",
+    "contracts/resecure/types.ts",
+    "resecure/contracts/types.ts",
+    "docs/architecture/resecure-architecture.md",
+    "docs/adr/ADR-003-resecure-stack.md"
+  ],
+  "verification": {
+    "type_check_passed": true,
+    "linter_passed": true,
+    "unit_tests_run": 0,
+    "unit_tests_passed": 0,
+    "test_command": "powershell -File ./scripts/validation/Test-Contracts.ps1",
+    "test_log_path": ""
+  },
+  "known_limitations": [
+    "Exact mathematical recovery is strictly bounded to scenarios where damaged chunks E <= available parity shards M. If E > M, the safe failure protocol executes.",
+    "Heuristic format repair mutates content to achieve structural compliance and cannot guarantee semantic business completeness."
+  ],
+  "downstream_actions": [
+    "Stage 2 Unblocked: Database Agent to implement SQLite schema and repository models based on contracts/resecure/schema.sql.",
+    "Stage 2 Unblocked: UI/UX and Frontend Agents to implement wireframes and React 18 interface based on contracts/resecure/types.ts and contracts/resecure/api.yaml.",
+    "Stage 3 Unblocked: Backend Agent to implement FastAPI REST endpoints, RS Codec over GF(2^8), and Format Validation engines.",
+    "Stage 4 Unblocked: QA and Security Agents to build bit-flip chaos injection test suites and path traversal validation."
+  ]
+}

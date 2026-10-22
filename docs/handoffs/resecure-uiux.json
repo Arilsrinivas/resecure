@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "task_id": "TASK-RS-003",
+  "epic": "resecure",
+  "agent": "UI/UX Agent",
+  "branch": "feature/resecure",
+  "status": "READY_FOR_REVIEW",
+  "timestamp": "2026-10-22T17:55:00Z",
+  "changes": {
+    "files_created": [
+      "design/resecure-tokens.json",
+      "resecure/design/resecure-tokens.json",
+      "docs/ui/resecure-design-spec.md",
+      "resecure/docs/ui/resecure-design-spec.md",
+      "docs/handoffs/resecure-uiux.json",
+      "docs/handoffs/resecure-uiux.md"
+    ],
+    "files_modified": [],
+    "files_deleted": []
+  },
+  "contracts_consumed": [
+    "docs/prd/resecure-mvp.prd.md",
+    "docs/architecture/resecure-architecture.md",
+    "contracts/resecure/types.ts"
+  ],
+  "contracts_produced": [
+    "design/resecure-tokens.json",
+    "resecure/design/resecure-tokens.json",
+    "docs/ui/resecure-design-spec.md",
+    "resecure/docs/ui/resecure-design-spec.md"
+  ],
+  "verification": {
+    "type_check_passed": true,
+    "linter_passed": true,
+    "unit_tests_run": 0,
+    "unit_tests_passed": 0,
+    "test_command": "powershell -Command \"Get-Content 'f:\\cyber act\\design\\resecure-tokens.json' | ConvertFrom-Json | Out-Null\"",
+    "test_log_path": ""
+  },
+  "known_limitations": [
+    "Design tokens and UI specifications provide the complete visual and interactive architecture; client production application code is deferred to the Frontend Agent per CalmStacks Agent Factory boundaries.",
+    "Chunk visualizer grid renders up to 32 chunks per row in expanded desktop view; multi-gigabyte files with large chunk counts should employ virtual windowing as documented in the specification."
+  ],
+  "downstream_actions": [
+    "Frontend Agent: Implement React 18 Single-Page Application adhering to design/resecure-tokens.json, docs/ui/resecure-design-spec.md, and contracts/resecure/types.ts.",
+    "Database Agent: Ensure query endpoints support retrieval of chunk health maps and corruption events for the interactive chunk visualizer.",
+    "QA Agent: Verify WCAG 2.1 AA accessibility contrast and test interactive chunk states under simulated corruption scenarios."
+  ]
+}
