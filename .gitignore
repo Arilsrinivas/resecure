@@ -1,4 +1,4 @@
-﻿# CalmStacks Agent Factory .gitignore
+# CalmStacks Agent Factory .gitignore
 
 # Git Worktrees (Isolated agent working directories)
 .worktrees/
@@ -18,11 +18,15 @@ build/
 out/
 .cache/
 *.log
+*.db
+*.sqlite
 
 # Environment variables & secrets (NEVER COMMIT)
 .env
 .env.*
 !.env.example
+!.env.*.example
+!.env.resecure.example
 *.pem
 *.key
 *.cert
