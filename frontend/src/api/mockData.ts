@@ -1,408 +1,317 @@
-import {
-  UserRecord,
-  AdvocateProfileRecord,
-  ConsultationSlotRecord,
-  ConsultationRecord,
-  CaseWorkspaceRecord,
-  CaseDocumentRecord,
-  WorkspaceMessageRecord,
-  AdminAnalyticsData,
-  AIIntakeSummaryRecord,
-} from '../types';
+/**
+ * ReSecure Mock Data Provider
+ * Realistic cybersecurity fixtures and mock responses conforming to OpenAPI 3.1 & TypeScript contracts.
+ */
 
-export const INITIAL_USERS: UserRecord[] = [
-  {
-    id: 'user-client-1',
-    email: 'rohit.sharma@example.com',
-    full_name: 'Rohit Sharma',
-    role: 'client',
-    phone: '+91 98765 43210',
-    created_at: '2026-09-15T10:00:00Z',
-  },
-  {
-    id: 'user-client-2',
-    email: 'ananya.iyer@example.com',
-    full_name: 'Ananya Iyer',
-    role: 'client',
-    phone: '+91 98111 22334',
-    created_at: '2026-09-20T11:30:00Z',
-  },
-  {
-    id: 'user-adv-1',
-    email: 'adv.rajesh.kumar@delhibar.org',
-    full_name: 'Adv. Rajesh Kumar',
-    role: 'advocate',
-    phone: '+91 98100 11223',
-    created_at: '2026-08-01T09:00:00Z',
-  },
-  {
-    id: 'user-adv-2',
-    email: 'adv.meera.deshmukh@bombaybar.org',
-    full_name: 'Adv. Meera Deshmukh',
-    role: 'advocate',
-    phone: '+91 98200 44556',
-    created_at: '2026-08-05T09:00:00Z',
-  },
-  {
-    id: 'user-adv-3',
-    email: 'adv.karthik.ramamurthy@karnatakabar.org',
-    full_name: 'Adv. Karthik Ramamurthy',
-    role: 'advocate',
-    phone: '+91 98450 77889',
-    created_at: '2026-08-10T09:00:00Z',
-  },
-  {
-    id: 'user-adv-4',
-    email: 'adv.sunita.mukherjee@calcuttahar.org',
-    full_name: 'Adv. Sunita Mukherjee',
-    role: 'advocate',
-    phone: '+91 98310 99001',
-    created_at: '2026-08-12T09:00:00Z',
-  },
-  {
-    id: 'user-adv-pending',
-    email: 'adv.vikram.singh@allhabadbar.org',
-    full_name: 'Adv. Vikram Singh',
-    role: 'advocate',
-    phone: '+91 94150 12345',
-    created_at: '2026-09-28T14:20:00Z',
-  },
-  {
-    id: 'user-admin-1',
-    email: 'compliance@legalconnect.calmstacks.in',
-    full_name: 'Suresh Menon (BCI Compliance Officer)',
-    role: 'admin',
-    phone: '+91 11 2345 6789',
-    created_at: '2026-01-01T00:00:00Z',
-  },
-];
+import type {
+  ChunkHealthItem,
+  ForensicReportResponse,
+  HealthCheckResponse,
+  ProtectFileResponse,
+  RecoverFileResponse,
+  RecoveryJobRecord,
+  RepairFormatResponse,
+  SafeFailureResponse,
+  ValidateFormatResponse,
+  VerifyFileResponse,
+} from '../types/index';
 
-export const INITIAL_ADVOCATES: AdvocateProfileRecord[] = [
-  {
-    id: 'adv-prof-1',
-    user_id: 'user-adv-1',
-    full_name: 'Adv. Rajesh Kumar',
-    bar_council_enrollment: 'D/1842/2012',
-    state_bar_council: 'Bar Council of Delhi',
-    experience_years: 14,
-    practice_areas: ['Property & Real Estate', 'Cheque Bounce (Sec 138)', 'Civil Litigation', 'Consumer Protection'],
-    courts: ['Delhi High Court', 'Tis Hazari District Court', 'Patiala House Court', 'Saket District Court'],
-    languages: ['English', 'Hindi', 'Punjabi'],
-    city: 'Delhi',
-    state: 'Delhi (NCT)',
-    consultation_fee: 1500,
-    bio: 'Practicing advocate before the High Court of Delhi and National Consumer Disputes Redressal Commission (NCDRC). Focus on tenancy disputes, leasehold litigation, and Section 138 NI Act notices.',
-    verification_status: 'verified',
-    created_at: '2026-08-01T09:00:00Z',
-  },
-  {
-    id: 'adv-prof-2',
-    user_id: 'user-adv-2',
-    full_name: 'Adv. Meera Deshmukh',
-    bar_council_enrollment: 'MAH/3921/2015',
-    state_bar_council: 'Bar Council of Maharashtra & Goa',
-    experience_years: 11,
-    practice_areas: ['Corporate & Commercial', 'Cheque Bounce (Sec 138)', 'Property & Real Estate', 'Labour & Employment'],
-    courts: ['Bombay High Court', 'City Civil & Sessions Court Mumbai', 'NCLT Mumbai Bench'],
-    languages: ['English', 'Hindi', 'Marathi'],
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    consultation_fee: 2000,
-    bio: 'Advocate specializing in commercial contracts, MSME debt recovery, real estate transactions under MahaRERA, and corporate employment disputes.',
-    verification_status: 'verified',
-    created_at: '2026-08-05T09:00:00Z',
-  },
-  {
-    id: 'adv-prof-3',
-    user_id: 'user-adv-3',
-    full_name: 'Adv. Karthik Ramamurthy',
-    bar_council_enrollment: 'KAR/2204/2014',
-    state_bar_council: 'Karnataka State Bar Council',
-    experience_years: 12,
-    practice_areas: ['Property & Real Estate', 'Family & Matrimonial', 'Consumer Protection', 'Civil Litigation'],
-    courts: ['High Court of Karnataka', 'City Civil Court Bengaluru', 'Bengaluru District Consumer Commission'],
-    languages: ['English', 'Kannada', 'Tamil', 'Hindi'],
-    city: 'Bengaluru',
-    state: 'Karnataka',
-    consultation_fee: 1200,
-    bio: 'Appears regularly before Karnataka High Court and City Civil Courts. Specializes in Bengaluru urban tenancy issues, security deposit recoveries, and family property partitions.',
-    verification_status: 'verified',
-    created_at: '2026-08-10T09:00:00Z',
-  },
-  {
-    id: 'adv-prof-4',
-    user_id: 'user-adv-4',
-    full_name: 'Adv. Sunita Mukherjee',
-    bar_council_enrollment: 'WB/982/2011',
-    state_bar_council: 'Bar Council of West Bengal',
-    experience_years: 15,
-    practice_areas: ['Family & Matrimonial', 'Civil Litigation', 'Criminal Defense', 'Consumer Protection'],
-    courts: ['Calcutta High Court', 'Alipore District & Sessions Court', 'City Civil Court Kolkata'],
-    languages: ['English', 'Bengali', 'Hindi'],
-    city: 'Kolkata',
-    state: 'West Bengal',
-    consultation_fee: 1800,
-    bio: 'Over 15 years experience in civil rights, matrimonial mediation, partition suits, and consumer dispute redressal in Kolkata.',
-    verification_status: 'verified',
-    created_at: '2026-08-12T09:00:00Z',
-  },
-  {
-    id: 'adv-prof-pending-1',
-    user_id: 'user-adv-pending',
-    full_name: 'Adv. Vikram Singh',
-    bar_council_enrollment: 'UP/5512/2021',
-    state_bar_council: 'Bar Council of Uttar Pradesh',
-    experience_years: 5,
-    practice_areas: ['Criminal Defense', 'Motor Accident Claims', 'Consumer Protection'],
-    courts: ['Allahabad High Court (Lucknow Bench)', 'District Court Lucknow'],
-    languages: ['English', 'Hindi'],
-    city: 'Lucknow',
-    state: 'Uttar Pradesh',
-    consultation_fee: 1000,
-    bio: 'Junior counsel with experience in bail hearings, criminal revision petitions, and insurance tribunal claims.',
-    verification_status: 'pending',
-    created_at: '2026-09-28T14:20:00Z',
-  },
-];
-
-export const INITIAL_SLOTS: ConsultationSlotRecord[] = [
-  // Slots for Adv. Rajesh Kumar
-  {
-    id: 'slot-101',
-    advocate_id: 'adv-prof-1',
-    start_time: '2026-10-05T10:00:00+05:30',
-    end_time: '2026-10-05T10:45:00+05:30',
-    mode: 'video',
-    is_booked: true,
-    created_at: '2026-09-25T00:00:00Z',
-  },
-  {
-    id: 'slot-102',
-    advocate_id: 'adv-prof-1',
-    start_time: '2026-10-05T16:00:00+05:30',
-    end_time: '2026-10-05T16:45:00+05:30',
-    mode: 'in_person',
-    is_booked: false,
-    created_at: '2026-09-25T00:00:00Z',
-  },
-  {
-    id: 'slot-103',
-    advocate_id: 'adv-prof-1',
-    start_time: '2026-10-06T11:00:00+05:30',
-    end_time: '2026-10-06T11:45:00+05:30',
-    mode: 'audio',
-    is_booked: false,
-    created_at: '2026-09-25T00:00:00Z',
-  },
-  {
-    id: 'slot-104',
-    advocate_id: 'adv-prof-1',
-    start_time: '2026-10-07T15:00:00+05:30',
-    end_time: '2026-10-07T15:45:00+05:30',
-    mode: 'video',
-    is_booked: false,
-    created_at: '2026-09-25T00:00:00Z',
-  },
-
-  // Slots for Adv. Meera Deshmukh
-  {
-    id: 'slot-201',
-    advocate_id: 'adv-prof-2',
-    start_time: '2026-10-05T14:00:00+05:30',
-    end_time: '2026-10-05T14:45:00+05:30',
-    mode: 'video',
-    is_booked: false,
-    created_at: '2026-09-25T00:00:00Z',
-  },
-  {
-    id: 'slot-202',
-    advocate_id: 'adv-prof-2',
-    start_time: '2026-10-06T17:00:00+05:30',
-    end_time: '2026-10-06T17:45:00+05:30',
-    mode: 'in_person',
-    is_booked: false,
-    created_at: '2026-09-25T00:00:00Z',
-  },
-
-  // Slots for Adv. Karthik Ramamurthy
-  {
-    id: 'slot-301',
-    advocate_id: 'adv-prof-3',
-    start_time: '2026-10-05T11:30:00+05:30',
-    end_time: '2026-10-05T12:15:00+05:30',
-    mode: 'video',
-    is_booked: false,
-    created_at: '2026-09-25T00:00:00Z',
-  },
-  {
-    id: 'slot-302',
-    advocate_id: 'adv-prof-3',
-    start_time: '2026-10-06T15:30:00+05:30',
-    end_time: '2026-10-06T16:15:00+05:30',
-    mode: 'audio',
-    is_booked: false,
-    created_at: '2026-09-25T00:00:00Z',
-  },
-  {
-    id: 'slot-303',
-    advocate_id: 'adv-prof-3',
-    start_time: '2026-10-07T16:30:00+05:30',
-    end_time: '2026-10-07T17:15:00+05:30',
-    mode: 'in_person',
-    is_booked: false,
-    created_at: '2026-09-25T00:00:00Z',
-  },
-
-  // Slots for Adv. Sunita Mukherjee
-  {
-    id: 'slot-401',
-    advocate_id: 'adv-prof-4',
-    start_time: '2026-10-05T16:00:00+05:30',
-    end_time: '2026-10-05T16:45:00+05:30',
-    mode: 'video',
-    is_booked: false,
-    created_at: '2026-09-25T00:00:00Z',
-  },
-];
-
-export const INITIAL_INTAKE_SUMMARY: AIIntakeSummaryRecord = {
-  id: 'ai-sum-1',
-  intake_id: 'intake-1',
-  facts_summary: 'Tenant vacated leased apartment located at Indiranagar, Bengaluru on 31st August 2026 after completing 11-month lease term. Landlord received keys upon inspection without recorded damages, but has withheld the refundable security deposit of INR 80,000 for over 30 days without written justification or itemized deductions.',
-  parties_involved: {
-    client_role: 'Complainant / Tenant (Rohit Sharma)',
-    opposing_party: 'S. K. Narayanan (Landlord / Property Owner, Bengaluru)',
-    dispute_nature: 'Wrongful retention of residential security deposit',
-  },
-  key_relief_sought: 'Immediate refund of INR 80,000 security deposit with 18% statutory interest, and recovery of legal notice expenses under Transfer of Property Act.',
-  suggested_practice_areas: ['Property & Real Estate', 'Civil Litigation', 'Consumer Protection'],
-  disclaimer_accepted: true,
-  missing_information: [
-    'Original copy of registered lease deed / rent agreement',
-    'Bank transaction slip / UTR for initial deposit payment',
-    'Written handover acknowledgement or WhatsApp communication log',
-  ],
-  statutory_disclaimer: 'LEGAL NOTICE & STATUTORY DISCLAIMER: This summary is automatically synthesized by an automated artificial intelligence system solely to assist in organizing factual statements for a legal practitioner. The AI Case Assistant does NOT provide legal advice, legal counsel, or legal representation. No advocate-client relationship is created by using this feature. Only a verified, enrolled advocate licensed by a State Bar Council can provide formal legal advice upon consultation.',
-  created_at: '2026-09-24T12:00:00Z',
+export const mockHealth: HealthCheckResponse = {
+  status: 'OK',
+  timestamp: new Date().toISOString(),
+  version: '1.0.0-mvp',
+  database_connected: true,
+  memory_rss_mb: 42.4,
+  disk_space_available_gb: 128.5,
 };
 
-export const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
+export const createMockChunks = (
+  totalK: number = 16,
+  corruptedIndices: number[] = [2, 7],
+  missingIndices: number[] = []
+): ChunkHealthItem[] => {
+  return Array.from({ length: totalK }, (_, i) => {
+    const isCorrupted = corruptedIndices.includes(i);
+    const isMissing = missingIndices.includes(i);
+    const offset = i * 65536;
+
+    let status: ChunkHealthItem['status'] = 'HEALTHY';
+    let liveSha: string | null = `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8${i.toString(16).padStart(2, '0')}`;
+    let flaw: string | undefined = undefined;
+
+    if (isCorrupted) {
+      status = 'CORRUPTED';
+      liveSha = `a3c49e2101ab43cc77889100112233445566778899aabbccddeeff00112233${i.toString(16).padStart(2, '0')}`;
+      flaw = i === 2 
+        ? '14 Bit Flips detected in CSV row 412 (offset 0x00020420)'
+        : 'Null-byte zero fill detected in CSV row 1205 (offset 0x00070110)';
+    } else if (isMissing) {
+      status = 'MISSING';
+      liveSha = null;
+      flaw = 'Unexpected EOF; chunk block missing from storage disk';
+    }
+
+    return {
+      index: i,
+      offset,
+      size_bytes: 65536,
+      expected_sha256: `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8${i.toString(16).padStart(2, '0')}`,
+      live_sha256: liveSha,
+      status,
+      detected_flaw: flaw,
+    };
+  });
+};
+
+export const mockProtectResponse: ProtectFileResponse = {
+  job_id: 'job-protect-8f3e21a0-9c12',
+  file_id: 'file-ent-financials-9c12-4e89',
+  manifest_path: '/data/enterprise_q3_financials.csv.rsmanifest.json',
+  parity_path: '/data/enterprise_q3_financials.csv.rsparity',
+  root_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+  total_chunks_k: 16,
+  parity_chunks_m: 4,
+  redundancy_percentage: 20,
+  hmac_signature: '9a7b4512e0fc1d882354cfa9e31d45bc8843912061bcda0954b819f24cb514c2',
+  duration_ms: 84,
+};
+
+export const mockVerifyResponse: VerifyFileResponse = {
+  job_id: 'job-verify-44ac71e2-b01f',
+  source_path: '/data/enterprise_q3_financials.csv',
+  manifest_hmac_valid: true,
+  verdict: 'RECOVERABLE',
+  health_percentage: 87.5,
+  total_chunks_k: 16,
+  healthy_chunks: 14,
+  corrupted_chunks: 2,
+  missing_chunks: 0,
+  corrupted_indices: [2, 7],
+  parity_chunks_available: 4,
+  chunk_health_map: createMockChunks(16, [2, 7], []),
+  duration_ms: 56,
+};
+
+export const mockRecoverResponse: RecoverFileResponse = {
+  job_id: 'job-recover-14b9c8d3-77ef',
+  source_path: '/data/enterprise_q3_financials.csv',
+  output_path: '/data/recovered/enterprise_q3_financials.csv',
+  original_root_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+  recovered_root_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+  hash_verified_exact: true,
+  verdict: 'VERIFIED_EXACT',
+  parity_shards_consumed: 2,
+  parity_shards_remaining: 2,
+  duration_ms: 112,
+  throughput_mb_s: 9.4,
+};
+
+export const mockSafeFailureResponse: SafeFailureResponse = {
+  error_code: 'ERR_EXCEEDS_REDUNDANCY',
+  verdict: 'UNRECOVERABLE_EXACT',
+  message: 'Critical threshold exceeded: 6 damaged chunks detected while only 4 parity shards are available (Deficit: -2 chunks).',
+  damaged_chunks_count: 6,
+  parity_chunks_available: 4,
+  deficit: -2,
+  damaged_indices: [1, 2, 6, 7, 10, 14],
+  safe_action_taken: 'Safe Failure Protocol Enforced: Output write halted. Source file untouched.',
+};
+
+export const mockValidateFormatResponse: ValidateFormatResponse = {
+  format: 'JSON',
+  is_valid: false,
+  verdict: 'FORMAT_INVALID',
+  findings: [
+    {
+      rule_name: 'RFC_8259_STRING_DELIMITERS',
+      passed: false,
+      severity: 'ERROR',
+      message: 'Unterminated string literal before newline',
+      line_number: 48,
+      byte_offset: 1024,
+    },
+    {
+      rule_name: 'RFC_8259_TRAILING_COMMAS',
+      passed: false,
+      severity: 'WARNING',
+      message: 'Trailing comma before closing object bracket "}"',
+      line_number: 52,
+      byte_offset: 1180,
+    },
+    {
+      rule_name: 'RFC_8259_STREAM_COMPLETION',
+      passed: false,
+      severity: 'ERROR',
+      message: 'Truncated stream with 2 unclosed brackets (1 Array "[", 1 Object "{"',
+      line_number: 85,
+      byte_offset: 2450,
+    },
+  ],
+  metrics: {
+    nesting_depth: 4,
+    total_tokens: 412,
+    unclosed_brackets: 2,
+  },
+};
+
+export const mockRepairFormatResponse: RepairFormatResponse = {
+  source_path: '/data/corrupted_telemetry.json',
+  output_path: '/data/recovered/corrupted_telemetry.repaired.json',
+  log_path: '/data/recovered/corrupted_telemetry.repaired.log.json',
+  format: 'JSON',
+  verdict: 'STRUCTURALLY_SALVAGED',
+  disclosure_warning: 'Heuristic structural repair alters syntax to achieve RFC compliance. It does NOT guarantee semantic completeness. Source file remains untouched.',
+  mutations_count: 3,
+  repair_log: [
+    {
+      action: 'CLOSE_STRING_LITERAL',
+      row: 48,
+      byte_offset: 1024,
+      description: 'Appended closing quote before newline',
+      tokens_appended: '"',
+    },
+    {
+      action: 'STRIP_TRAILING_COMMA',
+      row: 52,
+      byte_offset: 1180,
+      description: 'Removed illegal trailing comma before object terminator',
+    },
+    {
+      action: 'BALANCE_DELIMITERS',
+      row: 85,
+      byte_offset: 2450,
+      description: 'Appended balanced closing brackets "]}"',
+      tokens_appended: ']}',
+    },
+  ],
+};
+
+export const mockAuditRecords: RecoveryJobRecord[] = [
   {
-    id: 'cons-101',
-    client_id: 'user-client-1',
-    client_name: 'Rohit Sharma',
-    advocate_id: 'adv-prof-1',
-    advocate_name: 'Adv. Rajesh Kumar',
-    slot_id: 'slot-101',
-    scheduled_at: '2026-10-05T10:00:00+05:30',
-    mode: 'video',
-    notes: 'Urgent advice needed regarding recovery of INR 80,000 deposit and drafting of formal legal notice under Sec 106 Transfer of Property Act.',
-    status: 'confirmed',
-    created_at: '2026-09-25T14:30:00Z',
+    id: 'job-rec-8812a-001',
+    file_id: 'file-001',
+    job_type: 'RECOVER',
+    status: 'COMPLETED',
+    progress_pct: 100,
+    source_path: 'enterprise_financials.csv',
+    output_path: '/data/recovered/enterprise_financials.csv',
+    corrupted_chunks: 2,
+    missing_chunks: 0,
+    parity_consumed: 2,
+    verdict: 'VERIFIED_EXACT',
+    duration_ms: 112,
+    throughput_mb_s: 9.4,
+    created_at: '2026-10-22T17:15:02Z',
+    completed_at: '2026-10-22T17:15:02Z',
   },
   {
-    id: 'cons-102',
-    client_id: 'user-client-2',
-    client_name: 'Ananya Iyer',
-    advocate_id: 'adv-prof-3',
-    advocate_name: 'Adv. Karthik Ramamurthy',
-    slot_id: 'slot-301',
-    scheduled_at: '2026-10-05T11:30:00+05:30',
-    mode: 'video',
-    notes: 'Deficiency in service complaint against e-commerce electronics seller refusing return of defective laptop.',
-    status: 'requested',
-    created_at: '2026-10-01T09:15:00Z',
+    id: 'job-ver-7741b-002',
+    file_id: 'file-001',
+    job_type: 'VERIFY',
+    status: 'COMPLETED',
+    progress_pct: 100,
+    source_path: 'enterprise_financials.csv',
+    corrupted_chunks: 2,
+    missing_chunks: 0,
+    parity_consumed: 0,
+    verdict: 'RECOVERABLE',
+    duration_ms: 56,
+    throughput_mb_s: 18.2,
+    created_at: '2026-10-22T16:50:31Z',
+    completed_at: '2026-10-22T16:50:31Z',
+  },
+  {
+    id: 'job-rep-9923c-003',
+    file_id: 'file-003',
+    job_type: 'REPAIR',
+    status: 'COMPLETED',
+    progress_pct: 100,
+    source_path: 'event_stream.json',
+    output_path: '/data/recovered/event_stream.repaired.json',
+    corrupted_chunks: 0,
+    missing_chunks: 0,
+    parity_consumed: 0,
+    verdict: 'STRUCTURALLY_SALVAGED',
+    duration_ms: 45,
+    throughput_mb_s: 12.0,
+    created_at: '2026-10-22T15:30:10Z',
+    completed_at: '2026-10-22T15:30:10Z',
+  },
+  {
+    id: 'job-rec-3301d-004',
+    file_id: 'file-004',
+    job_type: 'RECOVER',
+    status: 'UNRECOVERABLE',
+    progress_pct: 100,
+    source_path: 'patient_records_q2.db',
+    corrupted_chunks: 6,
+    missing_chunks: 0,
+    parity_consumed: 0,
+    verdict: 'UNRECOVERABLE_EXACT',
+    duration_ms: 32,
+    throughput_mb_s: 22.0,
+    error_message: 'ERR_EXCEEDS_REDUNDANCY: 6 damaged chunks exceed 2 parity shards (deficit -4)',
+    created_at: '2026-10-22T14:12:44Z',
+    completed_at: '2026-10-22T14:12:44Z',
+  },
+  {
+    id: 'job-pro-1192e-005',
+    file_id: 'file-001',
+    job_type: 'PROTECT',
+    status: 'COMPLETED',
+    progress_pct: 100,
+    source_path: 'enterprise_financials.csv',
+    corrupted_chunks: 0,
+    missing_chunks: 0,
+    parity_consumed: 0,
+    verdict: 'PRISTINE',
+    duration_ms: 84,
+    throughput_mb_s: 12.5,
+    created_at: '2026-10-22T12:00:19Z',
+    completed_at: '2026-10-22T12:00:19Z',
   },
 ];
 
-export const INITIAL_WORKSPACES: CaseWorkspaceRecord[] = [
-  {
-    id: 'ws-case-8921',
-    consultation_id: 'cons-101',
-    client_id: 'user-client-1',
-    advocate_id: 'adv-prof-1',
-    title: 'Case #LC-8921: Tenancy Security Deposit Dispute (Indiranagar)',
-    status: 'active',
-    created_at: '2026-09-25T14:30:00Z',
-    intake_summary: INITIAL_INTAKE_SUMMARY,
-  },
-];
+export const getMockForensicReport = (jobId: string): ForensicReportResponse => {
+  const match = mockAuditRecords.find((r) => r.id === jobId) || mockAuditRecords[0];
 
-export const INITIAL_DOCUMENTS: CaseDocumentRecord[] = [
-  {
-    id: 'doc-1',
-    workspace_id: 'ws-case-8921',
-    uploaded_by_user_id: 'user-client-1',
-    uploaded_by_name: 'Rohit Sharma',
-    file_name: 'lease_agreement_indiranagar_2025.pdf',
-    file_url: 'https://vault.legalconnect.local/cases/ws-case-8921/lease_agreement_indiranagar_2025.pdf',
-    file_size_bytes: 4404019,
-    mime_type: 'application/pdf',
-    category: 'Agreement/Contract',
-    created_at: '2026-09-25T15:00:00Z',
-  },
-  {
-    id: 'doc-2',
-    workspace_id: 'ws-case-8921',
-    uploaded_by_user_id: 'user-client-1',
-    uploaded_by_name: 'Rohit Sharma',
-    file_name: 'bank_transfer_deposit_receipt_hdfc.pdf',
-    file_url: 'https://vault.legalconnect.local/cases/ws-case-8921/bank_transfer_deposit_receipt_hdfc.pdf',
-    file_size_bytes: 841200,
-    mime_type: 'application/pdf',
-    category: 'Financial Statement',
-    created_at: '2026-09-25T15:10:00Z',
-  },
-  {
-    id: 'doc-3',
-    workspace_id: 'ws-case-8921',
-    uploaded_by_user_id: 'user-adv-1',
-    uploaded_by_name: 'Adv. Rajesh Kumar',
-    file_name: 'draft_statutory_legal_notice_demand_v1.docx',
-    file_url: 'https://vault.legalconnect.local/cases/ws-case-8921/draft_statutory_legal_notice_demand_v1.docx',
-    file_size_bytes: 125000,
-    mime_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    category: 'Legal Notice',
-    created_at: '2026-09-27T11:45:00Z',
-  },
-];
-
-export const INITIAL_MESSAGES: WorkspaceMessageRecord[] = [
-  {
-    id: 'msg-1',
-    workspace_id: 'ws-case-8921',
-    sender_id: 'user-client-1',
-    sender_name: 'Rohit Sharma',
-    sender_role: 'client',
-    message_text: 'Namaste Adv. Rajesh ji, I have uploaded the signed 11-month lease agreement and the HDFC Bank transaction receipt showing the initial deposit transfer of Rs 80,000. Looking forward to our consultation.',
-    created_at: '2026-09-25T15:15:00Z',
-  },
-  {
-    id: 'msg-2',
-    workspace_id: 'ws-case-8921',
-    sender_id: 'user-adv-1',
-    sender_name: 'Adv. Rajesh Kumar',
-    sender_role: 'advocate',
-    message_text: 'Greetings Rohit. I have reviewed the lease covenants. Clause 9 clearly mandates deposit refund within 7 working days upon key delivery. I have prepared a draft statutory demand notice for our upcoming call. Please keep your handover WhatsApp chat logs handy.',
-    created_at: '2026-09-27T12:00:00Z',
-  },
-];
-
-export const INITIAL_ADMIN_ANALYTICS: AdminAnalyticsData = {
-  total_registered_users: 1482,
-  total_verified_advocates: 89,
-  pending_verifications_count: 7,
-  total_intakes_submitted: 1240,
-  total_consultations_booked: 412,
-  active_workspaces_count: 218,
-  practice_area_breakdown: {
-    'Property & Real Estate': 38,
-    'Cheque Bounce (Sec 138)': 29,
-    'Family & Matrimonial': 24,
-    'Corporate & Commercial': 21,
-    'Consumer Disputes': 19,
-    'Civil Litigation': 31,
-    'Labour & Employment': 14,
-    'Criminal Defense': 12,
-  },
+  return {
+    operation_id: match.id,
+    timestamp: match.created_at,
+    tool_version: '1.0.0-mvp',
+    operation_type: match.job_type,
+    target_file: {
+      source_path: match.source_path,
+      output_path: match.output_path || null,
+      original_size_bytes: 1048576,
+      recovered_size_bytes: match.output_path ? 1048576 : null,
+    },
+    cryptography: {
+      manifest_hmac_valid: true,
+      original_root_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      recovered_root_sha256: match.verdict === 'VERIFIED_EXACT' ? 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' : null,
+      hash_match_verified: match.verdict === 'VERIFIED_EXACT',
+    },
+    chunk_diagnostics: {
+      total_chunks_k: 16,
+      parity_chunks_m: 4,
+      healthy_chunks: 16 - match.corrupted_chunks,
+      corrupted_chunks: match.corrupted_chunks,
+      missing_chunks: match.missing_chunks,
+      corrupted_indices: match.corrupted_chunks > 0 ? [2, 7] : [],
+      health_percentage: ((16 - match.corrupted_chunks) / 16) * 100,
+    },
+    recovery_metrics: {
+      parity_shards_consumed: match.parity_consumed,
+      parity_shards_remaining: 4 - match.parity_consumed,
+      verdict: match.verdict || 'PRISTINE',
+      duration_ms: match.duration_ms || 84,
+      throughput_mb_s: match.throughput_mb_s || 12.5,
+    },
+    format_validation: match.job_type === 'REPAIR' ? {
+      format_detected: 'JSON',
+      is_structurally_valid: true,
+      anomalies_detected: 3,
+    } : null,
+  };
 };

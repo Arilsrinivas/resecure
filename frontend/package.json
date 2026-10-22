@@ -1,12 +1,15 @@
 {
-  "name": "legalconnect-frontend",
+  "name": "resecure-frontend",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "LegalConnect MVP Client Web Application - BCI Rule 36 Compliant Legal Gateway",
+  "description": "ReSecure Cybersecurity Resilience & Exact Mathematical Recovery Console",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/fallback-build.cjs",
+    "build": "tsc --noEmit && vite build",
+    "build:fallback": "node scripts/fallback-build.cjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types tests/verify-frontend.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -14,18 +17,24 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@types/node": "^20.17.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
     "typescript": "^5.6.3",
     "vite": "^5.4.10"
   },
   "keywords": [
-    "legalconnect",
+    "resecure",
+    "cybersecurity",
     "calmstacks",
-    "legaltech",
-    "bci-rule-36",
-    "react"
+    "erasure-coding",
+    "reed-solomon",
+    "react",
+    "zero-trust"
   ],
   "author": "CalmStacks Agent Factory",
   "license": "Apache-2.0"
