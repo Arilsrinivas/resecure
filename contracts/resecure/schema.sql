@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS files (
     mime_type TEXT NOT NULL DEFAULT 'application/octet-stream',   -- MIME classification
     file_path TEXT,                                               -- Canonical file path
     file_format TEXT DEFAULT 'BINARY'                             -- Format: TEXT, CSV, JSON, PNG, JPEG, BINARY
-        CHECK (file_format IN ('TEXT', 'CSV', 'JSON', 'PNG', 'JPEG', 'BINARY')),
+        CHECK (file_format IN ('TEXT', 'CSV', 'JSON', 'PNG', 'JPEG', 'PDF', 'BINARY')),
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS format_validations (
     file_id TEXT REFERENCES files(file_id) ON DELETE SET NULL,      -- Associated file (nullable)
     filename TEXT NOT NULL,                                        -- Target file name
     detected_format TEXT NOT NULL                                  -- Detected file format
-        CHECK (detected_format IN ('TEXT', 'CSV', 'JSON', 'PNG', 'JPEG', 'BINARY', 'UNKNOWN')),
+        CHECK (detected_format IN ('TEXT', 'CSV', 'JSON', 'PNG', 'JPEG', 'PDF', 'BINARY', 'UNKNOWN')),
     is_valid INTEGER NOT NULL CHECK (is_valid IN (0, 1)),          -- 1 if valid, 0 if invalid
     error_count INTEGER NOT NULL DEFAULT 0 CHECK (error_count >= 0),   -- Number of syntax/format errors
     warning_count INTEGER NOT NULL DEFAULT 0 CHECK (warning_count >= 0), -- Number of warnings/anomalies

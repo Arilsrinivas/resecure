@@ -7,3 +7,4 @@ pydantic-settings>=2.6.0
 reedsolo>=1.7.0
 pillow>=10.4.0
 python-multipart>=0.0.12
+pypdf>=5.0.0

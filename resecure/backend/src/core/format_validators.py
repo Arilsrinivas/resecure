@@ -21,13 +21,14 @@ from PIL import Image
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 JPEG_SOI = b"\xff\xd8"
 JPEG_EOI = b"\xff\xd9"
+PDF_MAGIC = b"%PDF-"
 MAX_JSON_DEPTH = 128
 
 
 def detect_file_format(file_path: Union[str, Path]) -> str:
     """
     Detects file format by sniffing magic bytes, syntax patterns, and file extension.
-    Returns: 'TEXT', 'CSV', 'JSON', 'PNG', 'JPEG', or 'BINARY'.
+    Returns: 'TEXT', 'CSV', 'JSON', 'PNG', 'JPEG', 'PDF', or 'BINARY'.
     """
     path = Path(file_path).resolve()
     if not path.is_file():
@@ -37,6 +38,8 @@ def detect_file_format(file_path: Union[str, Path]) -> str:
     file_size = path.stat().st_size
 
     if file_size == 0:
+        if ext == ".pdf":
+            return "PDF"
         if ext in (".txt", ".md", ".log"):
             return "TEXT"
         if ext == ".csv":
@@ -58,9 +61,38 @@ def detect_file_format(file_path: Union[str, Path]) -> str:
     if head.startswith(JPEG_SOI):
         return "JPEG"
 
-    # Read first 4KB for text sniffing
+    if head.startswith(PDF_MAGIC):
+        return "PDF"
+
+    # Read first 4KB for format and content sniffing
     with path.open("rb") as f:
         sample = f.read(4096)
+
+    # Check for PDF magic byte within preamble (first 1024 bytes per ISO 32000)
+    if PDF_MAGIC in sample[:1024]:
+        return "PDF"
+
+    # Explicit extension checks for document / binary formats
+    if ext == ".pdf":
+        return "PDF"
+    if ext in (".png",):
+        return "PNG"
+    if ext in (".jpg", ".jpeg", ".jpe"):
+        return "JPEG"
+
+    # Extension matches for text formats (allow validators to inspect and report corruption)
+    if ext in (".json",):
+        return "JSON"
+    if ext in (".csv",):
+        return "CSV"
+    if ext in (".txt", ".log", ".md", ".sql", ".yaml", ".yml", ".ini", ".env"):
+        return "TEXT"
+
+    # High null-byte check for untyped files: files with significant nulls are binary, not text
+    if b"\x00" in sample:
+        null_ratio = sample.count(b"\x00") / max(1, len(sample))
+        if null_ratio > 0.05:
+            return "BINARY"
 
     # Strip UTF-8 BOM if present
     stripped = sample[3:] if sample.startswith(b"\xef\xbb\xbf") else sample
@@ -85,20 +117,8 @@ def detect_file_format(file_path: Union[str, Path]) -> str:
             if len(set(comma_counts)) == 1 and comma_counts[0] > 0:
                 return "CSV"
 
-    # Extension fallbacks
-    if ext in (".png",):
-        return "PNG"
-    if ext in (".jpg", ".jpeg", ".jpe"):
-        return "JPEG"
-    if ext in (".json",):
-        return "JSON"
-    if ext in (".csv",):
-        return "CSV"
-    if ext in (".txt", ".log", ".md", ".sql", ".yaml", ".yml", ".ini", ".env"):
-        return "TEXT"
-
-    # Check if printable UTF-8 text
-    if sample_text is not None:
+    # Check if printable UTF-8 text (without null bytes)
+    if sample_text is not None and b"\x00" not in sample:
         return "TEXT"
 
     return "BINARY"
@@ -829,6 +849,159 @@ def validate_jpeg(file_path: Union[str, Path]) -> Dict[str, Any]:
     }
 
 
+def validate_pdf(file_path: Union[str, Path]) -> Dict[str, Any]:
+    """
+    Validates PDF file syntax, header markers, EOF trailer, and object structure using pypdf.
+    """
+    path = Path(file_path).resolve()
+    findings: List[Dict[str, Any]] = []
+    is_valid = True
+
+    if not path.is_file():
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    file_size = path.stat().st_size
+    if file_size == 0:
+        return {
+            "format": "PDF",
+            "is_valid": False,
+            "verdict": "FORMAT_INVALID",
+            "findings": [{
+                "rule_name": "PDF_EMPTY_FILE",
+                "passed": False,
+                "severity": "ERROR",
+                "message": "PDF file is 0 bytes; empty payload.",
+                "byte_offset": 0,
+                "line_number": None,
+            }],
+            "metrics": {"size_bytes": 0, "page_count": 0},
+        }
+
+    raw_bytes = path.read_bytes()
+
+    # 1. Total zero-fill wipe check
+    null_count = raw_bytes.count(b"\x00")
+    if null_count == file_size:
+        return {
+            "format": "PDF",
+            "is_valid": False,
+            "verdict": "FORMAT_INVALID",
+            "findings": [{
+                "rule_name": "PDF_ZERO_FILL_WIPED",
+                "passed": False,
+                "severity": "ERROR",
+                "message": f"Fatal corruption: file consists entirely of {null_count} null bytes (0x00). Total entropy loss.",
+                "byte_offset": 0,
+                "line_number": None,
+            }],
+            "metrics": {"size_bytes": file_size, "page_count": 0, "null_bytes": null_count},
+        }
+
+    # 2. Magic header check (%PDF-)
+    header_idx = raw_bytes.find(b"%PDF-")
+    if header_idx == -1:
+        is_valid = False
+        findings.append({
+            "rule_name": "PDF_MAGIC_HEADER",
+            "passed": False,
+            "severity": "ERROR",
+            "message": "Missing standard '%PDF-' magic header in file preamble.",
+            "byte_offset": 0,
+            "line_number": 1,
+        })
+    elif header_idx > 0:
+        is_valid = False
+        findings.append({
+            "rule_name": "PDF_HEADER_OFFSET",
+            "passed": False,
+            "severity": "WARNING",
+            "message": f"PDF header found at offset {header_idx} instead of byte 0 (prefix garbage detected).",
+            "byte_offset": header_idx,
+            "line_number": None,
+        })
+    else:
+        version_str = raw_bytes[5:8].decode("ascii", errors="ignore")
+        findings.append({
+            "rule_name": "PDF_MAGIC_HEADER",
+            "passed": True,
+            "severity": "INFO",
+            "message": f"Valid PDF header '%PDF-{version_str}' detected at offset 0.",
+            "byte_offset": 0,
+            "line_number": 1,
+        })
+
+    # 3. EOF marker check (%%EOF)
+    tail_sample = raw_bytes[-1024:] if file_size >= 1024 else raw_bytes
+    if b"%%EOF" not in tail_sample:
+        is_valid = False
+        findings.append({
+            "rule_name": "PDF_EOF_MARKER",
+            "passed": False,
+            "severity": "WARNING",
+            "message": "Missing standard '%%EOF' terminator marker in file trailer.",
+            "byte_offset": file_size,
+            "line_number": None,
+        })
+    else:
+        findings.append({
+            "rule_name": "PDF_EOF_MARKER",
+            "passed": True,
+            "severity": "INFO",
+            "message": "Valid '%%EOF' terminator marker detected.",
+            "byte_offset": file_size - len(tail_sample) + tail_sample.rfind(b"%%EOF"),
+            "line_number": None,
+        })
+
+    # 4. Deep structural parsing with pypdf
+    page_count = 0
+    try:
+        import pypdf
+        reader = pypdf.PdfReader(io.BytesIO(raw_bytes), strict=False)
+        page_count = len(reader.pages)
+        if page_count == 0:
+            is_valid = False
+            findings.append({
+                "rule_name": "PDF_PAGES_EMPTY",
+                "passed": False,
+                "severity": "ERROR",
+                "message": "PDF document contains 0 parseable pages.",
+                "byte_offset": None,
+                "line_number": None,
+            })
+        else:
+            findings.append({
+                "rule_name": "PDF_PAGES_VALID",
+                "passed": True,
+                "severity": "INFO",
+                "message": f"Successfully parsed {page_count} PDF page(s) and cross-reference catalog.",
+                "byte_offset": None,
+                "line_number": None,
+            })
+    except Exception as e:
+        is_valid = False
+        findings.append({
+            "rule_name": "PDF_PARSER_ERROR",
+            "passed": False,
+            "severity": "ERROR",
+            "message": f"PDF parser structural error: {str(e)}",
+            "byte_offset": None,
+            "line_number": None,
+        })
+
+    verdict = "FORMAT_VALID" if is_valid else "FORMAT_INVALID"
+    return {
+        "format": "PDF",
+        "is_valid": is_valid,
+        "verdict": verdict,
+        "findings": findings,
+        "metrics": {
+            "size_bytes": file_size,
+            "page_count": page_count,
+            "null_bytes": null_count,
+        },
+    }
+
+
 def validate_format(
     file_path: Union[str, Path],
     format_name: str = "AUTO",
@@ -851,6 +1024,8 @@ def validate_format(
         return validate_png(file_path)
     elif fmt in ("JPEG", "JPG"):
         return validate_jpeg(file_path)
+    elif fmt == "PDF":
+        return validate_pdf(file_path)
     else:
         # Generic binary check
         path = Path(file_path).resolve()

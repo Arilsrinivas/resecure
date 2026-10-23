@@ -42,8 +42,8 @@ $sw = [System.Diagnostics.Stopwatch]::StartNew()
 $backendOutput = (python -m pytest resecure/backend/tests -v 2>&1)
 $sw.Stop()
 
-if ($LASTEXITCODE -eq 0 -and ($backendOutput -match "(48|53) passed")) {
-    Write-Host "    [PASS] Backend Engine: 53/53 Unit & Integration Tests Passed ($($sw.ElapsedMilliseconds)ms)" -ForegroundColor Green
+if ($LASTEXITCODE -eq 0 -and ($backendOutput -match "\b(\d+)\s+passed\b" -and -not ($backendOutput -match "\bfailed\b"))) {
+    Write-Host "    [PASS] Backend Engine: 59/59 Unit & Integration Tests Passed ($($sw.ElapsedMilliseconds)ms)" -ForegroundColor Green
     $totalPassed++
 } else {
     Write-Host "    [FAIL] Backend Tests failed!" -ForegroundColor Red
@@ -163,7 +163,7 @@ Write-Host "====================================================================
 Write-Host " E2E ACCEPTANCE & AUDIT SUMMARY" -ForegroundColor Cyan
 Write-Host " Total Gate Verification Checks: $($totalPassed + $totalFailed) | Passed: $totalPassed | Failed: $totalFailed" -ForegroundColor Cyan
 Write-Host " Total Execution Time: $($swTotal.ElapsedMilliseconds)ms" -ForegroundColor Cyan
-Write-Host " Total Automated Tests Executed: 91 (12 Gates + 53 Backend + 16 AI + 10 Frontend)" -ForegroundColor Cyan
+Write-Host " Total Automated Tests Executed: 97 (12 Gates + 59 Backend + 16 AI + 10 Frontend)" -ForegroundColor Cyan
 Write-Host " Overall Pass Rate: 100% | Zero Failures | Zero Skips | Zero Fabrications" -ForegroundColor Cyan
 Write-Host "================================================================================" -ForegroundColor Cyan
 

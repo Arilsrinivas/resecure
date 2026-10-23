@@ -29,6 +29,7 @@ const SUPPORTED_FORMATS = [
   { name: 'Plain Text', ext: '.txt, .log', desc: 'UTF-8 encoding, BOM, ASCII control chars' },
   { name: 'PNG Image', ext: '.png', desc: 'Magic bytes, IHDR/IDAT/IEND, CRC32 chunk checks' },
   { name: 'JPEG Image', ext: '.jpg, .jpeg', desc: 'SOI/EOI markers, segment integrity' },
+  { name: 'PDF Document', ext: '.pdf', desc: 'Magic bytes, xref catalog, stream integrity & EOF markers' },
   { name: 'RS Parity Package', ext: '.rsmanifest.json, .rsparity', desc: 'Cryptographic Reed-Solomon Galois Field recovery' },
 ];
 

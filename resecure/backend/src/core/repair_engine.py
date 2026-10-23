@@ -33,9 +33,12 @@ def repair_text(content_bytes: bytes) -> Tuple[bytes, List[Dict[str, Any]]]:
     """
     repair_log: List[Dict[str, Any]] = []
 
-    # 1. Strip orphan null bytes
+    # 1. Strip orphan null bytes (guarding against 100% zero-fill wipe)
     if b"\x00" in content_bytes:
         count = content_bytes.count(b"\x00")
+        if count == len(content_bytes):
+            # Entire file consists of null bytes: fatal entropy loss, cannot be repaired as text
+            return b"", []
         first_offset = content_bytes.find(b"\x00")
         content_bytes = content_bytes.replace(b"\x00", b"")
         repair_log.append({
@@ -350,6 +353,90 @@ def repair_jpeg(content_bytes: bytes) -> Tuple[bytes, List[Dict[str, Any]]]:
     return bytes(data), repair_log
 
 
+def repair_pdf(content_bytes: bytes) -> Tuple[bytes, List[Dict[str, Any]]]:
+    """
+    Applies heuristic repairs for damaged PDF documents:
+    - Checks for zero-fill entropy loss (returns empty bytes if fatal)
+    - Strips prepended prefix garbage before %PDF-
+    - Synthesizes missing %PDF- header if objects exist
+    - Synthesizes missing %%EOF terminator
+    - Rebuilds cross-reference and object stream catalog using pypdf
+    - Validates output using real PDF parser; returns empty bytes if unrecoverable
+    """
+    repair_log: List[Dict[str, Any]] = []
+
+    if not content_bytes or content_bytes.count(b"\x00") == len(content_bytes):
+        return b"", []
+
+    working = content_bytes
+
+    # 1. Strip prepended prefix garbage before %PDF-
+    header_idx = working.find(b"%PDF-")
+    if header_idx > 0:
+        working = working[header_idx:]
+        repair_log.append({
+            "action": "strip_prefix_garbage",
+            "byte_offset": 0,
+            "description": f"Stripped {header_idx} byte(s) of prepended header garbage before %PDF- marker",
+            "row": None,
+            "tokens_appended": None,
+        })
+    elif header_idx == -1 and (b"obj" in working or b"/Pages" in working):
+        working = b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n" + working
+        repair_log.append({
+            "action": "synthesize_header",
+            "byte_offset": 0,
+            "description": "Synthesized standard %PDF-1.4 magic header and binary comment",
+            "row": None,
+            "tokens_appended": "%PDF-1.4\n",
+        })
+
+    # 2. Synthesize missing %%EOF terminator
+    if b"%%EOF" not in working[-1024:]:
+        working = working + b"\n%%EOF\n"
+        repair_log.append({
+            "action": "synthesize_eof",
+            "byte_offset": len(working),
+            "description": "Synthesized missing %%EOF terminator marker",
+            "row": None,
+            "tokens_appended": "\n%%EOF\n",
+        })
+
+    # 3. Rebuild object tree and catalog using pypdf
+    try:
+        import pypdf
+        reader = pypdf.PdfReader(io.BytesIO(working), strict=False)
+        if len(reader.pages) > 0:
+            writer = pypdf.PdfWriter()
+            for page in reader.pages:
+                writer.add_page(page)
+            buf = io.BytesIO()
+            writer.write(buf)
+            rebuilt = buf.getvalue()
+            if len(rebuilt) > 0:
+                working = rebuilt
+                repair_log.append({
+                    "action": "rebuild_pdf_catalog",
+                    "byte_offset": None,
+                    "description": f"Rebuilt PDF object tree and cross-reference table ({len(reader.pages)} page(s) salvaged)",
+                    "row": None,
+                    "tokens_appended": None,
+                })
+    except Exception:
+        pass
+
+    # 4. Strict parser verification of repaired bytes
+    try:
+        import pypdf
+        final_reader = pypdf.PdfReader(io.BytesIO(working), strict=False)
+        if len(final_reader.pages) > 0:
+            return working, repair_log
+    except Exception:
+        pass
+
+    return b"", []
+
+
 def repair_file_format(
     source_path: Union[str, Path],
     output_path: Union[str, Path],
@@ -388,13 +475,33 @@ def repair_file_format(
         repaired_bytes, repair_log = repair_png(content_bytes)
     elif fmt in ("JPEG", "JPG"):
         repaired_bytes, repair_log = repair_jpeg(content_bytes)
+    elif fmt == "PDF":
+        repaired_bytes, repair_log = repair_pdf(content_bytes)
     else:
         repaired_bytes = content_bytes
         repair_log = []
 
-    # Write repaired file
+    # INVARIANT: Never treat an empty output as successful recovery!
+    if len(repaired_bytes) == 0:
+        if out.is_file():
+            out.unlink(missing_ok=True)
+        return {
+            "source_path": str(src),
+            "output_path": str(out),
+            "log_path": None,
+            "format": fmt,
+            "verdict": "UNRECOVERABLE",
+            "disclosure_warning": "Recovery produced 0 bytes. Heuristic recovery is impossible for this corruption pattern (fatal entropy loss).",
+            "mutations_count": 0,
+            "repair_log": [],
+        }
+
+    # Write repaired file with guaranteed byte flushing
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_bytes(repaired_bytes)
+    with out.open("wb") as f:
+        f.write(repaired_bytes)
+        f.flush()
+        os.fsync(f.fileno())
 
     # Write disclosure log
     resolved_log_path = Path(log_path).resolve() if log_path else Path(f"{out}.repaired.log.json")

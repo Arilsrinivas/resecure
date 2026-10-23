@@ -21,7 +21,7 @@ class FileModel(BaseModel):
     root_sha256: str = Field(min_length=64, max_length=64, description="64-char lowercase SHA-256 root hash")
     mime_type: str = Field(default="application/octet-stream", description="MIME classification")
     file_path: Optional[str] = Field(default=None, description="Absolute canonical file path")
-    file_format: Optional[str] = Field(default="BINARY", description="Format: TEXT, CSV, JSON, PNG, JPEG, BINARY")
+    file_format: Optional[str] = Field(default="BINARY", description="Format: TEXT, CSV, JSON, PNG, JPEG, PDF, BINARY")
     created_at: Optional[str] = Field(default=None, description="ISO-8601 creation timestamp")
     updated_at: Optional[str] = Field(default=None, description="ISO-8601 last updated timestamp")
 

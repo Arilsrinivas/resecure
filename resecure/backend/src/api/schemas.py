@@ -22,6 +22,7 @@ class FileFormat(str, Enum):
     JSON = "JSON"
     PNG = "PNG"
     JPEG = "JPEG"
+    PDF = "PDF"
     BINARY = "BINARY"
     AUTO = "AUTO"
 

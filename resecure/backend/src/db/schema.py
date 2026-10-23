@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS files (
     mime_type TEXT NOT NULL DEFAULT 'application/octet-stream',
     file_path TEXT,
     file_format TEXT DEFAULT 'BINARY'
-        CHECK (file_format IN ('TEXT', 'CSV', 'JSON', 'PNG', 'JPEG', 'BINARY')),
+        CHECK (file_format IN ('TEXT', 'CSV', 'JSON', 'PNG', 'JPEG', 'PDF', 'BINARY')),
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS format_validations (
     file_id TEXT REFERENCES files(file_id) ON DELETE SET NULL,
     filename TEXT NOT NULL,
     detected_format TEXT NOT NULL
-        CHECK (detected_format IN ('TEXT', 'CSV', 'JSON', 'PNG', 'JPEG', 'BINARY', 'UNKNOWN')),
+        CHECK (detected_format IN ('TEXT', 'CSV', 'JSON', 'PNG', 'JPEG', 'PDF', 'BINARY', 'UNKNOWN')),
     is_valid INTEGER NOT NULL CHECK (is_valid IN (0, 1)),
     error_count INTEGER NOT NULL DEFAULT 0 CHECK (error_count >= 0),
     warning_count INTEGER NOT NULL DEFAULT 0 CHECK (warning_count >= 0),
@@ -202,6 +202,65 @@ def get_schema_sql() -> str:
     return EMBEDDED_SCHEMA_SQL
 
 
+def run_migrations(conn: sqlite3.Connection) -> None:
+    """Runs incremental schema migrations safely."""
+    cursor = conn.cursor()
+    cursor.execute("SELECT version FROM schema_migrations")
+    applied = {row[0] for row in cursor.fetchall()}
+
+    if "v1.1.0_pdf_support" not in applied:
+        cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='files'")
+        files_row = cursor.fetchone()
+        if files_row and "'PDF'" not in files_row[0]:
+            conn.execute("PRAGMA foreign_keys=OFF")
+            conn.execute("""
+            CREATE TABLE IF NOT EXISTS files_new (
+                file_id TEXT PRIMARY KEY,
+                filename TEXT NOT NULL,
+                file_size INTEGER NOT NULL CHECK (file_size >= 0),
+                root_sha256 TEXT NOT NULL CHECK (length(root_sha256) = 64),
+                mime_type TEXT NOT NULL DEFAULT 'application/octet-stream',
+                file_path TEXT,
+                file_format TEXT DEFAULT 'BINARY'
+                    CHECK (file_format IN ('TEXT', 'CSV', 'JSON', 'PNG', 'JPEG', 'PDF', 'BINARY')),
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+                updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+            );
+            """)
+            conn.execute("INSERT INTO files_new SELECT * FROM files;")
+            conn.execute("DROP TABLE files;")
+            conn.execute("ALTER TABLE files_new RENAME TO files;")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_files_root_sha256 ON files(root_sha256);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_files_created_at ON files(created_at);")
+
+            conn.execute("""
+            CREATE TABLE IF NOT EXISTS format_validations_new (
+                validation_id TEXT PRIMARY KEY,
+                file_id TEXT REFERENCES files(file_id) ON DELETE SET NULL,
+                filename TEXT NOT NULL,
+                detected_format TEXT NOT NULL
+                    CHECK (detected_format IN ('TEXT', 'CSV', 'JSON', 'PNG', 'JPEG', 'PDF', 'BINARY', 'UNKNOWN')),
+                is_valid INTEGER NOT NULL CHECK (is_valid IN (0, 1)),
+                error_count INTEGER NOT NULL DEFAULT 0 CHECK (error_count >= 0),
+                warning_count INTEGER NOT NULL DEFAULT 0 CHECK (warning_count >= 0),
+                details_json TEXT NOT NULL DEFAULT '{}',
+                format_verdict TEXT DEFAULT 'FORMAT_VALID'
+                    CHECK (format_verdict IS NULL OR format_verdict IN ('FORMAT_VALID', 'FORMAT_INVALID', 'STRUCTURALLY_SALVAGED')),
+                repair_log_json TEXT,
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+            );
+            """)
+            conn.execute("INSERT INTO format_validations_new SELECT * FROM format_validations;")
+            conn.execute("DROP TABLE format_validations;")
+            conn.execute("ALTER TABLE format_validations_new RENAME TO format_validations;")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_format_val_file_id ON format_validations(file_id);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_format_val_created_at ON format_validations(created_at);")
+            conn.execute("PRAGMA foreign_keys=ON")
+
+        conn.execute("INSERT OR IGNORE INTO schema_migrations (version) VALUES ('v1.1.0_pdf_support');")
+        conn.commit()
+
+
 def init_db(
     conn: Optional[sqlite3.Connection] = None,
     manager: Optional[DatabaseConnectionManager] = None,
@@ -226,6 +285,7 @@ def init_db(
         conn.execute(
             "INSERT OR IGNORE INTO schema_migrations (version) VALUES ('v1.0.0_initial_schema');"
         )
+        run_migrations(conn)
         conn.commit()
     else:
         mgr = manager or get_connection_manager()
@@ -235,6 +295,7 @@ def init_db(
             c.execute(
                 "INSERT OR IGNORE INTO schema_migrations (version) VALUES ('v1.0.0_initial_schema');"
             )
+            run_migrations(c)
             c.commit()
 
 

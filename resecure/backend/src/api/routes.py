@@ -112,6 +112,8 @@ async def one_click_repair(
                         detail="File exceeds maximum size limit of 2GB",
                     )
                 out_f.write(chunk)
+            out_f.flush()
+            os.fsync(out_f.fileno())
         target_path = file_staging_path
         filename = safe_name
     elif source_path:
@@ -142,6 +144,8 @@ async def one_click_repair(
         with m_path.open("wb") as out_f:
             while chunk := await manifest_file.read(65536):
                 out_f.write(chunk)
+            out_f.flush()
+            os.fsync(out_f.fileno())
         manifest_path_to_use = m_path
 
     if parity_file is not None and parity_file.filename:
@@ -150,6 +154,8 @@ async def one_click_repair(
         with p_path.open("wb") as out_f:
             while chunk := await parity_file.read(65536):
                 out_f.write(chunk)
+            out_f.flush()
+            os.fsync(out_f.fileno())
         parity_path_to_use = p_path
 
     if not manifest_path_to_use:
@@ -203,7 +209,7 @@ async def one_click_repair(
     # 4. Format detection and heuristic repair
     detected_fmt = detect_file_format(target_path)
 
-    if detected_fmt in ("TEXT", "CSV", "JSON", "PNG", "JPEG"):
+    if detected_fmt in ("TEXT", "CSV", "JSON", "PNG", "JPEG", "PDF"):
         val_res = validate_format(target_path, format_name=detected_fmt)
         findings = val_res.get("findings", [])
 
@@ -235,11 +241,38 @@ async def one_click_repair(
             format_name=detected_fmt,
         )
 
-        val_repaired = validate_format(out_repaired, format_name=detected_fmt)
-        rep_sha256 = hash_file(out_repaired)
+        out_exists_and_non_empty = out_repaired.is_file() and out_repaired.stat().st_size > 0
+        val_repaired = validate_format(out_repaired, format_name=detected_fmt) if out_exists_and_non_empty else {"is_valid": False}
+        rep_sha256 = hash_file(out_repaired) if out_exists_and_non_empty else None
         elapsed_ms = round((time.time() - start_time) * 1000, 2)
 
-        if val_repaired.get("is_valid", False) or rep_res.get("mutations_count", 0) > 0:
+        if out_exists_and_non_empty and rep_res.get("verdict") != "UNRECOVERABLE" and (val_repaired.get("is_valid", False) or rep_res.get("mutations_count", 0) > 0):
+            # Strict post-validation for PDF format using pypdf parser
+            if detected_fmt == "PDF":
+                try:
+                    import pypdf
+                    reader = pypdf.PdfReader(str(out_repaired), strict=False)
+                    if len(reader.pages) == 0:
+                        raise ValueError("PDF document contains 0 parseable pages")
+                except Exception as e:
+                    out_repaired.unlink(missing_ok=True)
+                    return {
+                        "job_id": job_id,
+                        "filename": filename,
+                        "file_size_bytes": file_size,
+                        "detected_format": detected_fmt,
+                        "verdict": "UNRECOVERABLE",
+                        "is_exact": False,
+                        "original_sha256": original_sha256,
+                        "output_sha256": None,
+                        "mutations_count": 0,
+                        "repair_log": [],
+                        "findings": findings,
+                        "download_url": None,
+                        "message": f"PDF repair could not produce a readable document ({e}). Recovery requires trusted Reed-Solomon parity data.",
+                        "duration_ms": elapsed_ms,
+                    }
+
             download_url = f"/api/download-repaired/{job_id}?output={out_repaired.name}"
             return {
                 "job_id": job_id,
@@ -258,6 +291,8 @@ async def one_click_repair(
                 "duration_ms": elapsed_ms,
             }
         else:
+            if out_repaired.is_file():
+                out_repaired.unlink(missing_ok=True)
             elapsed_ms = round((time.time() - start_time) * 1000, 2)
             return {
                 "job_id": job_id,
@@ -272,7 +307,7 @@ async def one_click_repair(
                 "repair_log": [],
                 "findings": findings,
                 "download_url": None,
-                "message": "File corruption exceeds heuristic salvage capacity. Advanced recovery requires trusted Reed-Solomon parity data.",
+                "message": "File corruption is fatal (e.g. zero-fill entropy loss or unparseable structure). Heuristic recovery cannot salvage readable content. Bit-for-bit reconstruction requires pre-generated Reed-Solomon parity data.",
                 "duration_ms": elapsed_ms,
             }
 
@@ -327,6 +362,12 @@ def download_repaired_file(
 
     if not target.is_file() or not target.resolve().is_relative_to(STAGING_DIR):
         raise HTTPException(status_code=404, detail="Repaired file not found")
+
+    if target.stat().st_size == 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Repaired file is empty (0 bytes); recovery was unsuccessful or unverified.",
+        )
 
     download_filename = target.name
     if download_filename.startswith(f"repaired_{job_id}_"):

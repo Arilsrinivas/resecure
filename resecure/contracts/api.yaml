@@ -335,7 +335,7 @@ components:
     # -------------------------------------------------------------------------
     FileFormat:
       type: string
-      enum: [TEXT, CSV, JSON, PNG, JPEG, BINARY, AUTO]
+      enum: [TEXT, CSV, JSON, PNG, JPEG, PDF, BINARY, AUTO]
       description: Supported format classification.
 
     ChunkStatus:

@@ -3,7 +3,7 @@
  * Single source of truth mapped directly to contracts/resecure/types.ts
  */
 
-export type FileFormat = 'TEXT' | 'CSV' | 'JSON' | 'PNG' | 'JPEG' | 'BINARY' | 'AUTO';
+export type FileFormat = 'TEXT' | 'CSV' | 'JSON' | 'PNG' | 'JPEG' | 'PDF' | 'BINARY' | 'AUTO';
 
 export type ChunkStatus = 'HEALTHY' | 'CORRUPTED' | 'MISSING' | 'OVERSIZED';
 
