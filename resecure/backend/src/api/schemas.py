@@ -333,3 +333,22 @@ class ErrorResponse(BaseModel):
     message: str
     timestamp: str
     details: Optional[Dict[str, Any]] = None
+
+
+class OneClickRepairResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    job_id: str = Field(..., description="Unique UUID for this repair execution")
+    filename: str = Field(..., description="Sanitized original filename")
+    file_size_bytes: int = Field(..., description="Original input file size in bytes")
+    detected_format: str = Field(..., description="Detected format (TEXT, CSV, JSON, PNG, JPEG, BINARY)")
+    verdict: str = Field(..., description="Overall verdict: PRISTINE, EXACT_RECOVERED, REPAIRED, UNRECOVERABLE, UNSUPPORTED")
+    is_exact: bool = Field(False, description="True ONLY if output verified bit-for-bit against trusted root SHA-256")
+    original_sha256: str = Field(..., description="SHA-256 hash of the input file")
+    output_sha256: Optional[str] = Field(None, description="SHA-256 hash of the repaired/recovered file")
+    mutations_count: int = Field(0, description="Number of mutations/corrections applied")
+    repair_log: List[Dict[str, Any]] = Field(default_factory=list, description="Granular log of structural corrections")
+    findings: List[Dict[str, Any]] = Field(default_factory=list, description="Diagnostic findings before/after repair")
+    download_url: Optional[str] = Field(None, description="Endpoint to download the repaired/recovered file")
+    message: str = Field(..., description="Human-readable outcome summary")
+    duration_ms: float = Field(0.0, description="Processing duration in milliseconds")

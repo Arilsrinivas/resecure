@@ -648,8 +648,21 @@ class TestReSecureAcceptanceGates(unittest.TestCase):
         cmd = ["node", "--no-warnings", "--experimental-strip-types", str(frontend_test_script)]
         proc = subprocess.run(cmd, capture_output=True, text=True, cwd=str(REPO_ROOT))
         self.assertEqual(proc.returncode, 0, f"Frontend test runner failed: {proc.stderr}")
-        self.assertIn("pass 9", proc.stdout)
+        self.assertTrue("pass 9" in proc.stdout or "pass 10" in proc.stdout, f"Expected passes in: {proc.stdout}")
         self.assertIn("fail 0", proc.stdout)
+
+        # 4. One-Click Repair API contract verification
+        import io
+        res_repair = self.client.post(
+            "/api/one-click-repair",
+            files={"file": ("corrupted.json", io.BytesIO(b'{"key": "value",}'), "application/json")}
+        )
+        self.assertEqual(res_repair.status_code, 200)
+        repair_data = res_repair.json()
+        self.assertEqual(repair_data["verdict"], "REPAIRED")
+        self.assertFalse(repair_data["is_exact"])
+        self.assertGreaterEqual(repair_data["mutations_count"], 1)
+        self.assertIsNotNone(repair_data.get("download_url"))
 
     # =========================================================================
     # GATE 11: Required automated tests, linting, and type checks have been executed

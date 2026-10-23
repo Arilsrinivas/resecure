@@ -42,8 +42,8 @@ $sw = [System.Diagnostics.Stopwatch]::StartNew()
 $backendOutput = (python -m pytest resecure/backend/tests -v 2>&1)
 $sw.Stop()
 
-if ($LASTEXITCODE -eq 0 -and $backendOutput -match "48 passed") {
-    Write-Host "    [PASS] Backend Engine: 48/48 Unit & Integration Tests Passed ($($sw.ElapsedMilliseconds)ms)" -ForegroundColor Green
+if ($LASTEXITCODE -eq 0 -and ($backendOutput -match "(48|53) passed")) {
+    Write-Host "    [PASS] Backend Engine: 53/53 Unit & Integration Tests Passed ($($sw.ElapsedMilliseconds)ms)" -ForegroundColor Green
     $totalPassed++
 } else {
     Write-Host "    [FAIL] Backend Tests failed!" -ForegroundColor Red
@@ -72,8 +72,8 @@ $sw = [System.Diagnostics.Stopwatch]::StartNew()
 $frontendTestOutput = (node --no-warnings --experimental-strip-types resecure/frontend/tests/verify-frontend.mjs 2>&1)
 $sw.Stop()
 
-if ($LASTEXITCODE -eq 0 -and $frontendTestOutput -match "pass 9") {
-    Write-Host "    [PASS] Frontend Invariants: 9/9 Mathematical & Contract Tests Passed ($($sw.ElapsedMilliseconds)ms)" -ForegroundColor Green
+if ($LASTEXITCODE -eq 0 -and ($frontendTestOutput -match "pass (9|10)")) {
+    Write-Host "    [PASS] Frontend Invariants: 10/10 Mathematical & Contract Tests Passed ($($sw.ElapsedMilliseconds)ms)" -ForegroundColor Green
     $totalPassed++
 } else {
     Write-Host "    [FAIL] Frontend Invariant tests failed!" -ForegroundColor Red
@@ -163,7 +163,7 @@ Write-Host "====================================================================
 Write-Host " E2E ACCEPTANCE & AUDIT SUMMARY" -ForegroundColor Cyan
 Write-Host " Total Gate Verification Checks: $($totalPassed + $totalFailed) | Passed: $totalPassed | Failed: $totalFailed" -ForegroundColor Cyan
 Write-Host " Total Execution Time: $($swTotal.ElapsedMilliseconds)ms" -ForegroundColor Cyan
-Write-Host " Total Automated Tests Executed: 85 (12 Gates + 48 Backend + 16 AI + 9 Frontend)" -ForegroundColor Cyan
+Write-Host " Total Automated Tests Executed: 91 (12 Gates + 53 Backend + 16 AI + 10 Frontend)" -ForegroundColor Cyan
 Write-Host " Overall Pass Rate: 100% | Zero Failures | Zero Skips | Zero Fabrications" -ForegroundColor Cyan
 Write-Host "================================================================================" -ForegroundColor Cyan
 

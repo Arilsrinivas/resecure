@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
+import { OneClickRepair } from './components/OneClickRepair';
 import { ProtectStudio } from './components/ProtectStudio';
 import { IntegrityScanner } from './components/IntegrityScanner';
 import { RecoveryStudio } from './components/RecoveryStudio';
 import { FormatValidator } from './components/FormatValidator';
 import { ForensicReports } from './components/ForensicReports';
 import {
+  Wrench,
   ShieldCheck,
   Search,
   Activity,
@@ -16,10 +18,10 @@ import {
 import { HealthCheckResponse, VerifyFileResponse } from './types';
 import { apiClient } from './api/client';
 
-type ActiveTab = 'PROTECT' | 'SCANNER' | 'RECOVERY' | 'VALIDATOR' | 'REPORTS';
+type ActiveTab = 'ONE_CLICK' | 'PROTECT' | 'SCANNER' | 'RECOVERY' | 'VALIDATOR' | 'REPORTS';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('PROTECT');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('ONE_CLICK');
   const [health, setHealth] = useState<HealthCheckResponse | null>(null);
   const [isMockMode, setIsMockMode] = useState<boolean>(false);
   const [verifyData, setVerifyData] = useState<VerifyFileResponse | null>(null);
@@ -63,28 +65,33 @@ export const App: React.FC = () => {
 
   const navTabs: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: string }[] = [
     {
+      id: 'ONE_CLICK',
+      label: '1. One-Click Repair',
+      icon: <Wrench className="w-4 h-4" />,
+    },
+    {
       id: 'PROTECT',
-      label: '1. Protect & Parity',
+      label: '2. Protect & Parity',
       icon: <ShieldCheck className="w-4 h-4" />,
     },
     {
       id: 'SCANNER',
-      label: '2. Integrity Scanner',
+      label: '3. Integrity Scanner',
       icon: <Search className="w-4 h-4" />,
     },
     {
       id: 'RECOVERY',
-      label: '3. Recovery Studio',
+      label: '4. Recovery Studio',
       icon: <Activity className="w-4 h-4" />,
     },
     {
       id: 'VALIDATOR',
-      label: '4. Format Repair',
+      label: '5. Format Repair',
       icon: <FileCode className="w-4 h-4" />,
     },
     {
       id: 'REPORTS',
-      label: '5. Forensic Reports',
+      label: '6. Forensic Reports',
       icon: <FileText className="w-4 h-4" />,
     },
   ];
@@ -128,6 +135,13 @@ export const App: React.FC = () => {
 
       {/* Main Active Tab Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6">
+        {activeTab === 'ONE_CLICK' && (
+          <OneClickRepair
+            onNavigateToRecovery={() => setActiveTab('RECOVERY')}
+            onNavigateToValidator={() => setActiveTab('VALIDATOR')}
+          />
+        )}
+
         {activeTab === 'PROTECT' && (
           <ProtectStudio
             onProtectionComplete={(res) => {

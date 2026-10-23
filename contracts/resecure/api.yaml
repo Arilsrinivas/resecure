@@ -15,6 +15,68 @@ paths:
   # ---------------------------------------------------------------------------
   # Protection Endpoint
   # ---------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
+  # One-Click Automatic Repair Endpoint
+  # ---------------------------------------------------------------------------
+  /api/one-click-repair:
+    post:
+      summary: Automatic one-click file analysis, corruption detection, and repair
+      operationId: oneClickRepair
+      tags: [One-Click Repair]
+      description: >
+        Primary entry point for automated file repair. Automatically detects format,
+        validates syntax/structure, uses Reed-Solomon parity if available, or applies
+        calibrated heuristic repairs for Text, CSV, JSON, PNG, and JPEG.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+          application/json:
+            schema:
+              type: object
+              properties:
+                source_path:
+                  type: string
+      responses:
+        '200':
+          description: Automatic repair complete.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneClickRepairResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '500':
+          $ref: '#/components/responses/500InternalError'
+
+  /api/download-repaired/{job_id}:
+    get:
+      summary: Download repaired or recovered file
+      operationId: downloadRepairedFile
+      tags: [One-Click Repair]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: output
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File download stream
+        '404':
+          description: Repaired file not found
+
   /api/protect:
     post:
       summary: Protect file with Reed-Solomon parity and authenticated manifest
@@ -487,6 +549,56 @@ components:
         status:
           $ref: '#/components/schemas/ChunkStatus'
           example: CORRUPTED
+
+    OneClickRepairResponse:
+      type: object
+      required:
+        - job_id
+        - filename
+        - file_size_bytes
+        - detected_format
+        - verdict
+        - is_exact
+        - original_sha256
+        - message
+        - duration_ms
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        file_size_bytes:
+          type: integer
+        detected_format:
+          type: string
+        verdict:
+          type: string
+          enum: [PRISTINE, EXACT_RECOVERED, REPAIRED, UNRECOVERABLE, UNSUPPORTED]
+        is_exact:
+          type: boolean
+        original_sha256:
+          type: string
+        output_sha256:
+          type: string
+          nullable: true
+        mutations_count:
+          type: integer
+        repair_log:
+          type: array
+          items:
+            type: object
+        findings:
+          type: array
+          items:
+            type: object
+        download_url:
+          type: string
+          nullable: true
+        message:
+          type: string
+        duration_ms:
+          type: number
 
     ProtectFileResponse:
       type: object
