@@ -19,6 +19,7 @@ import {
   ValidateFormatResponse,
   VerifyFileRequest,
   VerifyFileResponse,
+  OneClickRepairResponse,
 } from '../types/index';
 
 import {
@@ -32,6 +33,7 @@ import {
   mockSafeFailureResponse,
   mockValidateFormatResponse,
   mockVerifyResponse,
+  mockOneClickRepairResponse,
 } from './mockData';
 
 class ReSecureApiClient {
@@ -63,16 +65,20 @@ class ReSecureApiClient {
     try {
       const url = `${this.baseUrl}${endpoint}`;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+      const requestHeaders: Record<string, string> = {
+        Accept: 'application/json',
+        ...((options.headers as Record<string, string>) || {}),
+      };
+      if (!(options.body instanceof FormData) && !requestHeaders['Content-Type']) {
+        requestHeaders['Content-Type'] = 'application/json';
+      }
 
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          ...(options.headers || {}),
-        },
+        headers: requestHeaders,
       });
 
       clearTimeout(timeoutId);
@@ -244,6 +250,38 @@ class ReSecureApiClient {
       { method: 'GET' },
       () => mockAuditRecords
     );
+  }
+
+  public async oneClickRepair(
+    file: File,
+    manifestFile?: File | null,
+    parityFile?: File | null
+  ): Promise<OneClickRepairResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (manifestFile) {
+      formData.append('manifest_file', manifestFile);
+    }
+    if (parityFile) {
+      formData.append('parity_file', parityFile);
+    }
+
+    return this.request(
+      '/one-click-repair',
+      {
+        method: 'POST',
+        body: formData,
+      },
+      () => ({
+        ...mockOneClickRepairResponse,
+        filename: file.name,
+        output_filename: `${file.name}.repaired`,
+      })
+    );
+  }
+
+  public getRepairedDownloadUrl(jobId: string): string {
+    return `${this.baseUrl}/download-repaired/${jobId}`;
   }
 
   public generateSampleCorruptedChunks(damagedCount: number, totalK: number = 16): ChunkHealthItem[] {

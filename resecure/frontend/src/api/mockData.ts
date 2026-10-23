@@ -14,6 +14,7 @@ import type {
   SafeFailureResponse,
   ValidateFormatResponse,
   VerifyFileResponse,
+  OneClickRepairResponse,
 } from '../types/index';
 
 export const mockHealth: HealthCheckResponse = {
@@ -314,4 +315,40 @@ export const getMockForensicReport = (jobId: string): ForensicReportResponse => 
       anomalies_detected: 3,
     } : null,
   };
+};
+
+export const mockOneClickRepairResponse: OneClickRepairResponse = {
+  job_id: 'job-oneclick-mock-001',
+  filename: 'corrupted_sample.json',
+  file_size_bytes: 1024,
+  detected_format: 'JSON',
+  verdict: 'REPAIRED',
+  is_exact: false,
+  original_sha256: 'a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0',
+  output_sha256: 'f0e1d2c3b4a59687123456789abcdef0123456789abcdef0123456789abcdef0',
+  mutations_count: 2,
+  repair_log: [
+    {
+      action: 'STRIP_TRAILING_DELIMITER',
+      byte_offset: 104,
+      description: 'Stripped trailing comma before closing bracket',
+    },
+    {
+      action: 'SYNTHESIZE_CLOSING_DELIMITER',
+      byte_offset: 120,
+      description: 'Synthesized missing closing delimiter ]',
+      tokens_appended: ']',
+    },
+  ],
+  findings: [
+    {
+      rule_name: 'JSON_SYNTAX',
+      passed: true,
+      severity: 'INFO',
+      message: 'Syntactically valid JSON after repair',
+    },
+  ],
+  download_url: '/api/download-repaired/job-oneclick-mock-001',
+  message: 'Heuristic structural repair succeeded. Validated with 2 mutations.',
+  duration_ms: 45,
 };

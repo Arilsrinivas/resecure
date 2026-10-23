@@ -18,6 +18,7 @@ import {
   mockAuditRecords,
   createMockChunks,
   getMockForensicReport,
+  mockOneClickRepairResponse,
 } from '../src/api/mockData.ts';
 
 describe('ReSecure Frontend Verification Test Suite', () => {
@@ -113,5 +114,16 @@ describe('ReSecure Frontend Verification Test Suite', () => {
     assert.ok(verdicts.includes('RECOVERABLE'));
     assert.ok(verdicts.includes('STRUCTURALLY_SALVAGED'));
     assert.ok(verdicts.includes('UNRECOVERABLE_EXACT'));
+  });
+
+  test('10. One-Click Repair Response Contract and Landing Page Fixtures', () => {
+    assert.equal(mockOneClickRepairResponse.job_id, 'job-oneclick-mock-001');
+    assert.equal(mockOneClickRepairResponse.filename, 'corrupted_sample.json');
+    assert.equal(mockOneClickRepairResponse.detected_format, 'JSON');
+    assert.equal(mockOneClickRepairResponse.verdict, 'REPAIRED');
+    assert.equal(mockOneClickRepairResponse.is_exact, false);
+    assert.equal(mockOneClickRepairResponse.mutations_count, 2);
+    assert.equal(mockOneClickRepairResponse.repair_log.length, 2);
+    assert.ok(mockOneClickRepairResponse.download_url.includes('/api/download-repaired/'));
   });
 });

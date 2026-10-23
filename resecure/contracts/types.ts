@@ -381,3 +381,21 @@ export interface ErrorResponse {
   details?: Record<string, unknown>;
   timestamp: string;
 }
+
+
+export interface OneClickRepairResponse {
+  job_id: string;
+  filename: string;
+  file_size_bytes: number;
+  detected_format: string;
+  verdict: 'PRISTINE' | 'EXACT_RECOVERED' | 'REPAIRED' | 'UNRECOVERABLE' | 'UNSUPPORTED';
+  is_exact: boolean;
+  original_sha256: string;
+  output_sha256?: string | null;
+  mutations_count: number;
+  repair_log: RepairLogEntry[];
+  findings: FormatValidationFinding[];
+  download_url?: string | null;
+  message: string;
+  duration_ms: number;
+}
